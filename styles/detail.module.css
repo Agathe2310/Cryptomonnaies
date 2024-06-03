@@ -1,0 +1,38 @@
+.container {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.title {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.description {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.languages {
+  margin-left: auto; 
+}
+
+.containerButton{
+  display: flex;
+  justify-content: space-between;
+}
+
+.goBack {
+  margin-right: auto;
+}
+
+.up{
+  color: green;
+}
+
+.down{
+  color: red;
+}

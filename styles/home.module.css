@@ -1,0 +1,55 @@
+.container {
+  padding: 20px;
+  text-align: center;
+}
+
+.languages {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+}
+
+.searchInput {
+  padding: 10px;
+  margin: 20px 0;
+  width: 80%;
+  max-width: 400px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.cryptosList {
+  list-style-type: none;
+  padding: 0;
+}
+
+.p{
+  display: inline-block;
+  margin-right: 10px;
+  color: black;
+}
+
+.up{
+  display: inline-block;
+  color: green;
+}
+
+.down{
+  display: inline-block;
+  color: red;
+}
+
+.crypto {
+  padding: 10px;
+  margin-bottom: 10px;
+  margin-left: 150px;
+  margin-right: 150px;
+  background-color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.crypto:hover {
+  background-color: #e0e0e0;
+}

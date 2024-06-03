@@ -1,0 +1,122 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import { Line } from 'react-chartjs-2';
+import Link from 'next/link';
+import {Chart as ChartJS,LineElement,CategoryScale,LinearScale,PointElement,Title,Tooltip,Legend} from 'chart.js';
+import styles from '../../styles/detail.module.css';
+import { useTranslation } from 'react-i18next';
+
+// Pour faire mon graphique j'ai utilisé ChartJs 
+// La documentation : https://www.chartjs.org/docs/latest/
+// Un tutoriel qui m'a aidé : https://www.aranacorp.com/fr/tracer-des-courbes-sur-votre-web-app-avec-chart-js/
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend );
+
+export default function CryptoDetails() {
+  const { t, i18n } = useTranslation();
+  const router = useRouter();
+  const { id } = router.query; // Récupération de l'id de la cryptomonnaie 
+  const [cryptoData, setCryptoData] = useState(null); 
+  const [chartData, setChartData] = useState(null); // pour les données du graphique
+  const [error, setError] = useState(null); 
+
+  // Ma clé d'api que je laisse ici exceptionnellement juste pour cet exercice (j'utilise l'api de CryptoCompare), 
+  const apiKey = 'd6feef65927568c4058a3ded90bcce23ab48ff94cff8cd759f20e503b7a23ff9';
+
+  useEffect(() => {
+    if (id) {
+      axios.get(`https://min-api.cryptocompare.com/data/pricemultifull`, {
+        params: {
+          fsyms: id,
+          tsyms: 'USD',
+          api_key: apiKey
+        }}).then(reponse => {
+        // console.log(reponse.data);
+        const monnaie = reponse.data.DISPLAY?.[id]?.USD;
+        if (monnaie) {
+          setCryptoData({
+            name: id,
+            price: monnaie.PRICE,
+            change24Hour: monnaie.CHANGE24HOUR,
+            marketCap: monnaie.MKTCAP
+          });
+          setError(null);
+        } else {
+          setError('Structure de données invalide provenant de l\'API');
+        }
+      }).catch(error => {
+        setError(`Erreur : ${error.message}. Veuillez réessayer plus tard.`);
+      });
+
+      // Requête pour obtenir les données grâce à l'historiques pour le graphique
+      axios.get(`https://min-api.cryptocompare.com/data/v2/histoday`, {
+        params: {
+          fsym: id,
+          tsym: 'USD',
+          limit: 30,
+          api_key: apiKey
+        }
+      })
+      .then(reponse => {
+        // console.log(reponse.data);
+        const donneesHistorique = reponse.data.Data?.Data;
+        if (donneesHistorique) {
+          // Formatage des données pour le graphique
+          const prices = donneesHistorique.map(data => data.close);
+          const dates = donneesHistorique.map(data => new Date(data.time * 1000).toLocaleDateString());
+          setChartData({
+            labels: dates,
+            datasets: [
+              {
+                label: 'Prix',
+                data: prices,
+                borderColor: '#3e95cd',
+                fill: false
+              }
+            ]
+          });
+          setError(null);
+        } else {
+          setError('Structure de données historiques invalide provenant de l\'API');
+        }
+      })
+      .catch(error => {
+        setError(`Erreur : ${error.message}. Veuillez réessayer plus tard.`);
+      });
+    }
+  }, [id]);
+
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (!cryptoData) return <p>{t('loading')}...</p>;
+
+   // Fonction pour changer la langue de l'application
+   const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+  };
+
+  return (
+    <div className={styles.container}>
+    <div className={styles.containerButton}>
+      <Link href="/">
+      <button className={styles.goBack}>← Revenir à la page d'accueil</button>
+    </Link>
+      <div className={styles.languages}>
+        <button onClick={() => changeLanguage('en')}>
+          <img src="/drapeaux/uk.png" alt="English" />
+        </button>
+        <button onClick={() => changeLanguage('fr')}>
+          <img src="/drapeaux/fr.png" alt="Français" />
+        </button>
+      </div>
+      </div>
+      <h1 className={styles.title}>{cryptoData.name}</h1>
+      <p className={styles.description}>{t('price')}: {cryptoData.price}</p>
+      <p className={styles.description}>{t('change24Hour')}: {cryptoData.change24Hour}</p>
+      <p className={styles.description}>{t('marketCap')}: {cryptoData.marketCap}</p>
+      {chartData && (
+        <Line data={chartData} />
+        )}
+        </div>
+  );
+}
+
